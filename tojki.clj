@@ -22,9 +22,11 @@
       (assert (= [3 1 2] (rotate -1 [1 2 3])))
       (assert (= [3 1 2] (rotate -4 [1 2 3])))
     )}
-  rotate [n v]
+  rotate
+  "Rotate vector v left by n. Negative values rotate right."
+  [n v]
   (let [shift (mod n (count v))]
-    (vec (concat (subvec v shift) (subvec v 0 shift)))))
+    (into (subvec v shift) (subvec v 0 shift))))
 
 (defn ; boundary
   #^{:test (fn []
@@ -40,8 +42,7 @@
   boundary
   "Returns a polygon representing the boundary of the given point set."
   [points]
-  (if (== 0 (count points))
-    []
+  (into [] (when (seq points)
     (loop [result [(apply min-key first points)]  ; left-most point
            clockwise [[0 -1] [1 -1] [1 0] [1 1] [0 1] [-1 1] [-1 0] [-1 -1]]]
       (let [prev (peek result)
@@ -51,13 +52,14 @@
             ; This is the next point in the boundary.
             [p dir] (first (keep #(if-let [p (neighbour %)] [p %]) (range 8)))]
         ; Terminate once we loop around to the start.
-        (if-not (and (= p (second result)) (= prev (first result)))
+        (if-not (and (= p (second result))
+                     (= prev (first result)))
           (recur
             (conj result p)
             ; Continue search from the neighbour immediately following the
             ; direction we came from.
             (rotate (+ 5 dir) clockwise))
-          result)))))
+          result))))))
 
 (defn ; in-polygon?
   #^{:test (fn []
