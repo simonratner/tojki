@@ -33,11 +33,14 @@
       (let [convex #{[0 0] [0 1] [1 0] [1 1] [1 2] [2 0] [2 1]}
             convex* [[0 1] [0 0] [1 0] [2 0] [2 1] [1 2] [0 1]]
             concave #{[0 0] [0 1] [0 2] [1 0] [1 1] [2 0] [2 1] [2 2] [3 0] [3 1]}
-            concave* [[0 2] [0 1] [0 0] [1 0] [2 0] [3 0] [3 1] [2 2] [1 1] [0 2]]]
+            concave* [[0 2] [0 1] [0 0] [1 0] [2 0] [3 0] [3 1] [2 2] [1 1] [0 2]]
+            intersect #{[0 0] [0 2] [1 0] [1 1] [1 2] [2 0] [2 2]}
+            intersect* [[0 2] [1 1] [0 0] [1 0] [2 0] [1 1] [2 2] [1 2] [0 2]]]
         (assert (= (boundary #{}) []))
         (assert (= (boundary #{[0 0]}) [[0 0]]))
         (assert (= (boundary convex) convex*))
         (assert (= (boundary concave) concave*))
+        (assert (= (boundary intersect) intersect*))
       ))}
   boundary
   "Returns a polygon representing the boundary of the given point set."
@@ -46,14 +49,14 @@
     (loop [result [(apply min-key first points)]  ; left-most point
            clockwise [[0 -1] [1 -1] [1 0] [1 1] [0 1] [-1 1] [-1 0] [-1 -1]]]
       (let [prev (peek result)
-            ; Returns neighbour from the set in the direction given by dir.
+            ; Returns a neighbour from the set in the direction dir, or nil.
             neighbour (fn [dir] (points (vec (map + (clockwise dir) prev))))
             ; Find the first neighbour, clockwise, that belongs to the set.
             ; This is the next point in the boundary.
             [p dir] (first (keep #(if-let [p (neighbour %)] [p %]) (range 8)))]
         ; Terminate once we loop around to the start.
-        (if-not (and (= p (second result))
-                     (= prev (first result)))
+        (if-not (and (= prev (first result))
+                     (= p (second result)))
           (recur
             (conj result p)
             ; Continue search from the neighbour immediately following the
