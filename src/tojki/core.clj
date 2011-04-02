@@ -1,3 +1,5 @@
+(ns tojki.core)
+
 (defn make-grid
   "Create a grid with dimensions [w h]."
   ([w h]
@@ -14,35 +16,13 @@
 (defn set-grid
   ([g x y v] (assoc-in g [y x] v)))
 
-(defn- ; rotate
-  #^{:test (fn []
-      (assert (= [1 2 3] (rotate 0 [1 2 3])))
-      (assert (= [2 3 1] (rotate 1 [1 2 3])))
-      (assert (= [2 3 1] (rotate 4 [1 2 3])))
-      (assert (= [3 1 2] (rotate -1 [1 2 3])))
-      (assert (= [3 1 2] (rotate -4 [1 2 3])))
-    )}
-  rotate
+(defn rotate
   "Rotate vector v left by n. Negative values rotate right."
   [n v]
   (let [shift (mod n (count v))]
     (into (subvec v shift) (subvec v 0 shift))))
 
-(defn ; boundary
-  #^{:test (fn []
-      (let [convex #{[0 0] [0 1] [1 0] [1 1] [1 2] [2 0] [2 1]}
-            convex* [[0 1] [0 0] [1 0] [2 0] [2 1] [1 2] [0 1]]
-            concave #{[0 0] [0 1] [0 2] [1 0] [1 1] [2 0] [2 1] [2 2] [3 0] [3 1]}
-            concave* [[0 2] [0 1] [0 0] [1 0] [2 0] [3 0] [3 1] [2 2] [1 1] [0 2]]
-            intersect #{[0 0] [0 2] [1 0] [1 1] [1 2] [2 0] [2 2]}
-            intersect* [[0 2] [1 1] [0 0] [1 0] [2 0] [1 1] [2 2] [1 2] [0 2]]]
-        (assert (= (boundary #{}) []))
-        (assert (= (boundary #{[0 0]}) [[0 0]]))
-        (assert (= (boundary convex) convex*))
-        (assert (= (boundary concave) concave*))
-        (assert (= (boundary intersect) intersect*))
-      ))}
-  boundary
+(defn boundary
   "Returns a polygon representing the boundary of the given point set."
   [points]
   (into [] (when (seq points)
@@ -64,17 +44,7 @@
             (rotate (+ 5 dir) clockwise))
           result))))))
 
-(defn ; in-polygon?
-  #^{:test (fn []
-      (let [convex [[0 1] [0 0] [1 0] [2 0] [2 1] [1 2] [0 1]]
-            concave [[0 2] [0 1] [0 0] [1 0] [2 0] [3 0] [3 1] [2 2] [1 1] [0 2]]]
-        (assert (in-polygon? convex 1 1))
-        (assert (in-polygon? concave 2 1))
-        (assert (not (in-polygon? [] 0 0)))
-        (assert (not (in-polygon? convex 2 2)))
-        (assert (not (in-polygon? concave 1 2)))
-  ))}
-  in-polygon?
+(defn in-polygon?
   "Returns true if [x y] lies on the interior of the polygon, false if it is on
   the exterior. Result undefined for points on the polygon boundary. Polygon is
   defined as a closed vector of [x y] vertices, may be convex or concave."
